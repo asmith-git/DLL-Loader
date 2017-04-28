@@ -21,6 +21,11 @@ namespace asmith {
 	class dll_loader {
 	private:
 		dll* mDll;
+
+		dll_loader(dll_loader&&) = delete;
+		dll_loader(const dll_loader&) = delete;
+		dll_loader& operator=(dll_loader&&) = delete;
+		dll_loader& operator=(const dll_loader&) = delete;
 	public:
 		dll_loader() throw();
 		dll_loader(const char*) throw();
