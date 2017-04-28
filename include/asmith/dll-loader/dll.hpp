@@ -11,8 +11,8 @@
 //	See the License for the specific language governing permissions and
 //	limitations under the License.
 
-#ifndef ASMITH_DLL_DLL_LOADER_HPP
-#define ASMITH_DLL_DLL_LOADER_HPP
+#ifndef ASMITH_DLL_DLL_HPP
+#define ASMITH_DLL_DLL_HPP
 
 #include <string>
 #include <memory>
