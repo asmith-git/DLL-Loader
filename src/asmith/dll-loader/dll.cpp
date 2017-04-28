@@ -44,7 +44,7 @@ namespace asmith {
 
 	struct dll_data_t {
 		HMODULE handle;
-	};
+	}; //!< \brief Contains OS specific handles for dynamic libraries, for internal use only.
 	
 	static std::map<std::string, std::weak_ptr<dll>> DLL_MAP;
 	static std::mutex DLL_MAP_LOCK;

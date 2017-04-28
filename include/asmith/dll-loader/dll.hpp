@@ -25,8 +25,8 @@ namespace asmith {
 
 	/*!
 		\brief Helps define the types of functions returned by dynamic libraries
-		\tparam R
-		\tparam PARAMS
+		\tparam R The return type of the function
+		\tparam PARAMS The parameter types of the function, empty when there are no parameters
 		\see dll
 	*/
 	template<class R, class... PARAMS>
@@ -53,11 +53,28 @@ namespace asmith {
 		const char* get_path() const throw();
 		void* get_raw_function(const char*) throw();
 
+		/*!
+			\tparam R The return type of the function
+			\tparam PARAMS The parameter types of the function, empty when there are no parameters
+			\brief Load a function with a known type
+			\param The name of the function
+			\return The address of the function, or nullptr if the load failed
+			\see get_raw_function
+			\see dll_function
+		*/
 		template<class R, class... PARAMS>
 		inline dll_function<R, PARAMS...> get_function(const char* aPath) throw() { 
 			return static_cast<dll_function<R, PARAMS...>>(get_raw_function(aPath)); 
 		}
 
+
+		/*!
+			\tparam T The type of a variable
+			\brief Load a variable with a known type, an exception is thrown on load failure
+			\param The name of the variable
+			\return The variable
+			\see get_raw_function
+		*/
 		template<class T>
 		inline T get_variable(const char* aPath) {
 			T* const tmp = static_cast<T*>(get_raw_function(aPath));
