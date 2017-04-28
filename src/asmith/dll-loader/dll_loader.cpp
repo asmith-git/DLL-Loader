@@ -45,7 +45,7 @@ namespace asmith {
 				tmp.handle = LoadLibraryA(aPath);
 				tmp.users = 0;
 				if(tmp.handle != NULL) {
-					DLL_MAP.emplace(path, tmp);
+					r = &DLL_MAP.emplace(path, tmp).first->second;
 				}
 			}
 		DLL_MAP_LOCK.unlock();
