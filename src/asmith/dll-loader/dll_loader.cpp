@@ -24,89 +24,132 @@
 
 namespace asmith {
 
-	struct dll {
+	struct dll_data_t {
 		HMODULE handle;
-		size_t users;
 	};
-
-	static std::map<std::string, dll> DLL_MAP;
+	
+	static std::map<std::string, std::weak_ptr<dll>> DLL_MAP;
 	static std::mutex DLL_MAP_LOCK;
 
-	static dll* load_dll(const char* aPath) throw() {
-		dll* r = nullptr;
+	// dll
+	std::shared_ptr<dll> dll::load(const char* aPath) throw() {
+		std::shared_ptr<dll> r;
 		const std::string path = aPath;
-
+		
 		DLL_MAP_LOCK.lock();
 			const auto i = DLL_MAP.find(path);
 			if(i != DLL_MAP.end()) {
-				r = &i->second;
+				r = i->second.lock();
+				if(! r) DLL_MAP.erase(i);
 			}else {
-				dll tmp;
+				dll_data_t tmp;
 				tmp.handle = LoadLibraryA(aPath);
-				tmp.users = 0;
 				if(tmp.handle != NULL) {
-					r = &DLL_MAP.emplace(path, tmp).first->second;
+					r = std::shared_ptr<dll>(new dll(path, new dll_data_t(tmp)));
+					DLL_MAP.emplace(path, r);
 				}
 			}
 		DLL_MAP_LOCK.unlock();
 		return r;
 	}
 
-
-
-	static bool unload_dll(const dll& aDll) throw() {
-		bool r = false;
-
-		DLL_MAP_LOCK.lock();
-			const auto end = DLL_MAP.end();
-			const auto i = std::find_if(DLL_MAP.begin(), end, [&aDll](const std::pair<const std::string,dll>& a)->bool {
-				return a.second.handle == aDll.handle;
-			});
-
-			if(i == end){
-				r = true;
-				if(i->second.users == 0) {
-					FreeLibrary(i->second.handle);
-					DLL_MAP.erase(i);
-				}
-			}
-		DLL_MAP_LOCK.unlock();
-		return r;
-	}
-
-	// dll_loader
-
-	dll_loader::dll_loader() throw() :
-		mDll(nullptr)
+	dll::dll(const std::string& aPath, dll_data_t* aData) :
+		mPath(aPath),
+		mData(aData)
 	{}
 
-	dll_loader::dll_loader(const char* aPath) throw() :
-		mDll(nullptr) 
-	{
-		load_dll(aPath);
-	}
-
-	dll_loader::~dll_loader() throw() {
-		if(mDll) {
-			--mDll->users;
-			asmith::unload_dll(*mDll);
-			mDll = nullptr;
+	dll::~dll() {
+		if(mData) {
+			FreeLibrary(mData->handle);
+			delete mData;
 		}
 	}
 
-	bool dll_loader::load_dll(const char* aPath) throw() {
-		if(mDll) {
-			--mDll->users;
-			asmith::unload_dll(*mDll);
-		}
-		mDll = asmith::load_dll(aPath);
-		if(! mDll) return false;
-		++mDll->users;
-		return true;
+	const char* dll::get_path() const throw() {
+		return mPath.c_str();
+	}
+	
+	void* dll::get_raw_function(const char* aName) throw() {
+		return mData ? GetProcAddress(mData->handle, aName) : nullptr;
 	}
 
-	void* dll_loader::get_raw_function(const char* aName) throw() {
-		return mDll ? GetProcAddress(mDll->handle, aName) : nullptr;
-	}
-
+//
+//	struct dll {
+//		HMODULE handle;
+//		size_t users;
+//	};
+//
+//	static dll* load_dll(const char* aPath) throw() {
+//		dll* r = nullptr;
+//		const std::string path = aPath;
+//
+//		DLL_MAP_LOCK.lock();
+//			const auto i = DLL_MAP.find(path);
+//			if(i != DLL_MAP.end()) {
+//				r = &i->second;
+//			}else {
+//				dll tmp;
+//				tmp.handle = LoadLibraryA(aPath);
+//				tmp.users = 0;
+//				if(tmp.handle != NULL) {
+//					r = &DLL_MAP.emplace(path, tmp).first->second;
+//				}
+//			}
+//		DLL_MAP_LOCK.unlock();
+//		return r;
+//	}
+//
+//
+//
+//	static bool unload_dll(const dll& aDll) throw() {
+//		bool r = false;
+//
+//		DLL_MAP_LOCK.lock();
+//			const auto end = DLL_MAP.end();
+//			const auto i = std::find_if(DLL_MAP.begin(), end, [&aDll](const std::pair<const std::string,dll>& a)->bool {
+//				return a.second.handle == aDll.handle;
+//			});
+//
+//			if(i == end){
+//				r = true;
+//				if(i->second.users == 0) {
+//					FreeLibrary(i->second.handle);
+//					DLL_MAP.erase(i);
+//				}
+//			}
+//		DLL_MAP_LOCK.unlock();
+//		return r;
+//	}
+//
+//	// dll_loader
+//
+//	dll_loader::dll_loader() throw() :
+//		mDll(nullptr)
+//	{}
+//
+//	dll_loader::dll_loader(const char* aPath) throw() :
+//		mDll(nullptr) 
+//	{
+//		load_dll(aPath);
+//	}
+//
+//	dll_loader::~dll_loader() throw() {
+//		if(mDll) {
+//			--mDll->users;
+//			asmith::unload_dll(*mDll);
+//			mDll = nullptr;
+//		}
+//	}
+//
+//	bool dll_loader::load_dll(const char* aPath) throw() {
+//		if(mDll) {
+//			--mDll->users;
+//			asmith::unload_dll(*mDll);
+//		}
+//		mDll = asmith::load_dll(aPath);
+//		if(! mDll) return false;
+//		++mDll->users;
+//		return true;
+//	}
+//
 }

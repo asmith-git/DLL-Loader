@@ -14,28 +14,33 @@
 #ifndef ASMITH_DLL_DLL_LOADER_HPP
 #define ASMITH_DLL_DLL_LOADER_HPP
 
+#include <string>
+#include <memory>
+
 namespace asmith {
 
 	template<class R, class... PARAMS>
 	using dll_function = R(__stdcall *)(PARAMS...);
 
-	struct dll;
+	struct dll_data_t;
 
-	class dll_loader {
+	class dll {
 	private:
-		dll* mDll;
+		const std::string mPath;
+		dll_data_t* const mData;
 
-		dll_loader(dll_loader&&) = delete;
-		dll_loader(const dll_loader&) = delete;
-		dll_loader& operator=(dll_loader&&) = delete;
-		dll_loader& operator=(const dll_loader&) = delete;
+		dll(dll&&) = delete;
+		dll(const dll&) = delete;
+		dll& operator=(dll&&) = delete;
+		dll& operator=(const dll&) = delete;
+
+		dll(const std::string&, dll_data_t*) throw();
 	public:
-		dll_loader() throw();
-		dll_loader(const char*) throw();
-		~dll_loader() throw();
+		static std::shared_ptr<dll> load(const char*) throw();
 
-		bool load_dll(const char*) throw();
+		~dll() throw();
 
+		const char* get_path() const throw();
 		void* get_raw_function(const char*) throw();
 
 		template<class R, class... PARAMS>
