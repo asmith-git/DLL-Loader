@@ -29,7 +29,7 @@ float(ASMITH_DLL_CALLING_CONVENTION *knownFunction)(int, int) = mDLL->get_functo
 dll_function<float, int, int> knownFunction2 = mDLL->get_functon<float,int,int>("myFunction");
 
 // Loading a variable
-float myVariable = mDLL->get_variable<float>("myFunction");
+float myVariable = mDLL->get_variable<float>("myVariable");
 ```
 
 ## Installation
