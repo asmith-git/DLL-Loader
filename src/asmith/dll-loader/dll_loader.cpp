@@ -11,7 +11,7 @@
 //	See the License for the specific language governing permissions and
 //	limitations under the License.
 
-#include "asmith/dll-loader/dll_loader.hpp"
+#include "asmith/dll-loader/dll.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
