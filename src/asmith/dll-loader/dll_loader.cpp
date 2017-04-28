@@ -105,7 +105,7 @@ namespace asmith {
 	}
 
 	void* dll_loader::get_raw_function(const char* aName) throw() {
-		return GetProcAddress(mDll->handle, aName);
+		return mDll ? GetProcAddress(mDll->handle, aName) : nullptr;
 	}
 
 }
