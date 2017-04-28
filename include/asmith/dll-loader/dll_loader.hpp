@@ -11,10 +11,13 @@
 //	See the License for the specific language governing permissions and
 //	limitations under the License.
 
-#ifndef ASMITH_DLL_DLL_LOADER
-#define ASMITH_DLL_DLL_LOADER
+#ifndef ASMITH_DLL_DLL_LOADER_HPP
+#define ASMITH_DLL_DLL_LOADER_HPP
 
 namespace asmith {
+
+	template<class R, class... PARAMS>
+	using dll_function = R(__stdcall *)(PARAMS...);
 
 	struct dll;
 
@@ -34,6 +37,16 @@ namespace asmith {
 		bool load_dll(const char*) throw();
 
 		void* get_raw_function(const char*) throw();
+
+		template<class R, class... PARAMS>
+		inline dll_function<R, PARAMS...> get_function(const char* aPath) throw() { 
+			return static_cast<dll_function<R, PARAMS...>>(get_raw_function(aPath)); 
+		}
+
+		template<class T>
+		inline T* get_variable(const char* aPath) throw() {
+			return static_cast<T*>(get_raw_function(aPath));
+		}
 	};
 
 }
