@@ -11,24 +11,34 @@
 //	See the License for the specific language governing permissions and
 //	limitations under the License.
 
-#ifndef ASMITH_DLL_DLL_LOADER
-#define ASMITH_DLL_DLL_LOADER
+#include "asmith/dll-loader/dll_loader.hpp"
 
 namespace asmith {
 
-	class dll_loader {
-	private:
-		void* mDll;
-	public:
-		dll_loader() throw();
-		dll_loader(const char*) throw();
-		~dll_loader() throw();
+	struct dll {
 
-		void load_dll(const char*) throw();
-
-		void* get_raw_function(const char*) throw();
 	};
 
-}
+	// dll_loader
 
-#endif
+	dll_loader::dll_loader() throw() :
+		mDll(nullptr)
+	{}
+
+	dll_loader::dll_loader(const char* aPath) throw() :
+		mDll(nullptr) 
+	{}
+
+	dll_loader::~dll_loader() throw() {
+
+	}
+
+	bool dll_loader::load_dll(const char* aPath) throw() {
+
+	}
+
+	void* dll_loader::get_raw_function(const char* aName) throw() {
+		return nullptr;
+	}
+
+}
