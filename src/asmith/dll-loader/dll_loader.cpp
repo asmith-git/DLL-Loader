@@ -13,10 +13,15 @@
 
 #include "asmith/dll-loader/dll_loader.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+//! \todo Implmented dynamic libraries for UNIX systems
+
 namespace asmith {
 
 	struct dll {
-
+		HMODULE handle;
 	};
 
 	// dll_loader
@@ -27,18 +32,30 @@ namespace asmith {
 
 	dll_loader::dll_loader(const char* aPath) throw() :
 		mDll(nullptr) 
-	{}
+	{
+		load_dll(aPath);
+	}
 
 	dll_loader::~dll_loader() throw() {
-
+		if(mDll) {
+			FreeLibrary(mDll->handle);
+			delete mDll;
+		}
 	}
 
 	bool dll_loader::load_dll(const char* aPath) throw() {
+		HMODULE tmp = LoadLibraryA(aPath);
+		if(tmp == NULL) return false;
 
+		if(mDll) delete static_cast<dll*>(mDll);
+		mDll = new dll();
+		mDll->handle = tmp;
+
+		return true;
 	}
 
 	void* dll_loader::get_raw_function(const char* aName) throw() {
-		return nullptr;
+		return GetProcAddress(mDll->handle, aName);
 	}
 
 }

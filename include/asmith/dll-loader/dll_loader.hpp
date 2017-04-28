@@ -16,15 +16,17 @@
 
 namespace asmith {
 
+	struct dll;
+
 	class dll_loader {
 	private:
-		void* mDll;
+		dll* mDll;
 	public:
 		dll_loader() throw();
 		dll_loader(const char*) throw();
 		~dll_loader() throw();
 
-		void load_dll(const char*) throw();
+		bool load_dll(const char*) throw();
 
 		void* get_raw_function(const char*) throw();
 	};
