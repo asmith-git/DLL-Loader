@@ -38,7 +38,7 @@ namespace asmith {
 
 		DLL_MAP_LOCK.lock();
 			const auto i = DLL_MAP.find(path);
-			if(i == DLL_MAP.end()) {
+			if(i != DLL_MAP.end()) {
 				r = &i->second;
 			}else {
 				dll tmp;
@@ -100,8 +100,9 @@ namespace asmith {
 			asmith::unload_dll(*mDll);
 		}
 		mDll = asmith::load_dll(aPath);
+		if(! mDll) return false;
 		++mDll->users;
-		return mDll != nullptr;
+		return true;
 	}
 
 	void* dll_loader::get_raw_function(const char* aName) throw() {
