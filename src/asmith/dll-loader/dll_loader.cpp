@@ -40,7 +40,6 @@ namespace asmith {
 			const auto i = DLL_MAP.find(path);
 			if(i == DLL_MAP.end()) {
 				r = &i->second;
-				++r->users;
 			}else {
 				dll tmp;
 				tmp.handle = LoadLibraryA(aPath);
@@ -66,7 +65,6 @@ namespace asmith {
 
 			if(i == end){
 				r = true;
-				--i->second.users;
 				if(i->second.users == 0) {
 					FreeLibrary(i->second.handle);
 					DLL_MAP.erase(i);
@@ -90,14 +88,19 @@ namespace asmith {
 
 	dll_loader::~dll_loader() throw() {
 		if(mDll) {
+			--mDll->users;
 			asmith::unload_dll(*mDll);
 			mDll = nullptr;
 		}
 	}
 
 	bool dll_loader::load_dll(const char* aPath) throw() {
-		if(mDll) asmith::unload_dll(*mDll);
+		if(mDll) {
+			--mDll->users;
+			asmith::unload_dll(*mDll);
+		}
 		mDll = asmith::load_dll(aPath);
+		++mDll->users;
 		return mDll != nullptr;
 	}
 
