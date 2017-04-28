@@ -17,17 +17,27 @@
 #include <string>
 #include <memory>
 
+#ifndef ASMITH_DLL_CALLING_CONVENTION
+	#define ASMITH_DLL_CALLING_CONVENTION
+#endif
+
 namespace asmith {
 
+	/*!
+		\brief Helps define the types of functions returned by dynamic libraries
+		\tparam R
+		\tparam PARAMS
+		\see dll
+	*/
 	template<class R, class... PARAMS>
-	using dll_function = R(__stdcall *)(PARAMS...);
+	using dll_function = R(ASMITH_DLL_CALLING_CONVENTION *)(PARAMS...);
 
 	struct dll_data_t;
 
 	class dll {
 	private:
-		const std::string mPath;
-		dll_data_t* const mData;
+		const std::string mPath;	//! The file path of the library
+		dll_data_t* const mData;	//! OS specific handles for the libary
 
 		dll(dll&&) = delete;
 		dll(const dll&) = delete;
