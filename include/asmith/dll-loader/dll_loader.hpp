@@ -44,8 +44,10 @@ namespace asmith {
 		}
 
 		template<class T>
-		inline T* get_variable(const char* aPath) throw() {
-			return static_cast<T*>(get_raw_function(aPath));
+		inline T get_variable(const char* aPath) {
+			T* const tmp = static_cast<T*>(get_raw_function(aPath));
+			if(tmp == nullptr) throw std::runtime_error("asmith::dll_loader::get_variable : Variable was not found with the given name");
+			return *tmp;
 		}
 	};
 
