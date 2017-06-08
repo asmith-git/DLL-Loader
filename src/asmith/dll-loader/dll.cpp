@@ -13,12 +13,18 @@
 
 #include "asmith/dll-loader/dll.hpp"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <map>
 #include <string>
 #include <mutex>
 #include <algorithm>
+
+#ifdef WIN32
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+#else
+	#include <sys/types.h>
+	#include <dlfcn.h>
+#endif
 
 //! \todo Implmented dynamic libraries for UNIX systems
 
@@ -43,7 +49,11 @@ namespace asmith {
 	*/
 
 	struct dll_data_t {
+#ifdef WIN32
 		HMODULE handle;
+#else
+		void* handle;
+#endif
 	}; //!< \brief Contains OS specific handles for dynamic libraries, for internal use only.
 	
 	static std::map<std::string, std::weak_ptr<dll>> DLL_MAP;
@@ -76,7 +86,11 @@ namespace asmith {
 			}else {
 				// Load the library from file
 				dll_data_t tmp;
+#ifdef WIN32
 				tmp.handle = LoadLibraryA(aPath);
+#else
+				tmp.handle = dlopen(aPath, RTLD_LAZY);
+#endif
 				if(tmp.handle != NULL) {
 					r = std::shared_ptr<dll>(new dll(path, new dll_data_t(tmp)));
 					// Cache the library
@@ -102,7 +116,11 @@ namespace asmith {
 	*/
 	dll::~dll() {
 		if(mData) {
+#ifdef WIN32
 			FreeLibrary(mData->handle);
+#else
+			dlclose(mData->handle);
+#endif
 			delete mData;
 		}
 	}
@@ -121,6 +139,12 @@ namespace asmith {
 		\return The address of the function, or nullptr if the load failed
 	*/
 	void* dll::get_raw_function(const char* aName) throw() {
-		return mData ? GetProcAddress(mData->handle, aName) : nullptr;
+		return mData ?
+#ifdef WIN32
+			GetProcAddress
+#else
+			dlsym
+#endif
+			(mData->handle, aName) : nullptr;
 	}
 }
