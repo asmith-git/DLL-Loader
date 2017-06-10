@@ -15,6 +15,7 @@
 #define ASMITH_DLL_DLL_HPP
 
 #include <memory>
+#include <string>
 
 #ifndef ASMITH_DLL_CALLING_CONVENTION
 	#define ASMITH_DLL_CALLING_CONVENTION
@@ -48,9 +49,9 @@ namespace asmith {
 		float myVar = mDLL->get_variable<float>("myFunction");
 		\endcode
 		\date Created: 28th April 2017 Modified : 10th June 2017
-		\version 2.0
+		\version 2.1
 	*/
-	class dynamic_library {
+	class dynamic_library : public std::enable_shared_from_this<dynamic_library> {
 	private:
 		dynamic_library(dynamic_library&&) = delete;
 		dynamic_library(const dynamic_library&) = delete;
@@ -75,7 +76,7 @@ namespace asmith {
 		/*!
 			\brief Load an untyped symbol from the library
 			\param The name of the symbol
-			\return The address of the symbol, or nullptr if the load failed
+			\return The address of the symbol
 		*/
 		virtual void* load_symbol(const char*) = 0;
 
@@ -84,7 +85,7 @@ namespace asmith {
 			\tparam PARAMS The parameter types of the function, empty when there are no parameters
 			\brief Load a function with a known type
 			\param The name of the function
-			\return The address of the function, or nullptr if the load failed
+			\return The address of the function
 			\see get_raw_function
 			\see dll_function
 		*/
@@ -96,7 +97,7 @@ namespace asmith {
 
 		/*!
 			\tparam T The type of a variable
-			\brief Load a variable with a known type, an exception is thrown on load failure
+			\brief Load a variable with a known type
 			\param The name of the variable
 			\return The variable
 			\see get_raw_function
@@ -104,9 +105,39 @@ namespace asmith {
 		template<class T>
 		inline T load_variable(const char* aPath) {
 			T* const tmp = static_cast<T*>(load_symbol(aPath));
-			if(tmp == nullptr) throw std::runtime_error("asmith::dll_loader::load_variable : Variable was not found with the given name");
 			return *tmp;
 		}
+	};
+
+	class library_load_exception : public std::exception {
+	private:
+		const std::string mMessage;
+	public:
+		const std::string path;
+
+		library_load_exception(const char*);
+		const char* what() const throw() override;
+	};
+
+	class library_close_exception : public std::exception {
+	private:
+		const std::string mMessage;
+	public:
+		const std::string path;
+
+		library_close_exception(const char*);
+		const char* what() const throw() override;
+	};
+
+	class symbol_not_found_exception : public std::exception {
+	private:
+		const std::string mMessage;
+	public:
+		const std::string symbol;
+		const std::shared_ptr<dynamic_library> library;
+
+		symbol_not_found_exception(const char*, std::shared_ptr<dynamic_library>);
+		const char* what() const throw() override;
 	};
 }
 

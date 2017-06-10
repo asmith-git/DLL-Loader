@@ -17,7 +17,6 @@
 #include <string>
 #include <mutex>
 #include <algorithm>
-#include <string>
 
 #ifdef WIN32
 	#define WIN32_LEAN_AND_MEAN
@@ -51,16 +50,25 @@ namespace asmith {
 		{
 			#ifdef WIN32
 				mHandle = LoadLibraryA(aPath);
+				if(mHandle == NULL) throw library_load_exception(aPath);
 			#else
 				mHandle = dlopen(aPath, RTLD_LAZY);
+				if(dlerror() != nullptr) throw library_load_exception(aPath);
 			#endif
 		}
 
 		~os_dynamic_library() {
 			#ifdef WIN32
-				FreeLibrary(mHandle);
+				if(mHandle != NULL) {
+					if(! FreeLibrary(mHandle)) throw library_close_exception(mPath.c_str());
+					mHandle = NULL;
+				}
 			#else
-				dlclose(mHandle);
+				if(mHandle != nullptr) {
+					dlclose(mHandle);
+					if(dlerror() != nullptr) throw library_close_exception(mPath.c_str());
+					mHandle = nullptr;
+				}
 			#endif
 		}
 
@@ -71,13 +79,15 @@ namespace asmith {
 		}
 
 		void* load_symbol(const char* aName) {
-			return 
 			#ifdef WIN32
-				GetProcAddress
+				void* const symbol = GetProcAddress(mHandle, aName);
+				if(symbol == NULL) throw symbol_not_found_exception(aName, shared_from_this());
+				return symbol;
 			#else
-				dlsym
+				void* const symbol = dlsym(mHandle, aName);
+				if(dlerror() != nullptr) throw symbol_not_found_exception(aName, shared_from_this());
+				return symbol;
 			#endif
-				(mHandle, aName);
 		}
 	};
 
@@ -114,5 +124,39 @@ namespace asmith {
 			}
 		DLL_MAP_LOCK.unlock();
 		return r;
+	}
+
+	// dynamic_symbol_not_found
+
+	symbol_not_found_exception::symbol_not_found_exception(const char* aName, std::shared_ptr<dynamic_library> aLibrary) :
+		mMessage("The symbol '" + std::string(aName) + "' could not be found"),
+		symbol(aName),
+		library(aLibrary)
+	{}
+
+	const char* symbol_not_found_exception::what() const throw() {
+		return mMessage.c_str();
+	}
+
+	// library_load_exception
+	
+	library_load_exception::library_load_exception(const char* aPath) :
+		mMessage("The dynamic library '" + std::string(aPath) + "' could not be loaded"),
+		path(aPath)
+	{}
+
+	const char* library_load_exception::what() const throw() {
+		return mMessage.c_str();
+	}
+
+	// library_close_exception
+
+	library_close_exception::library_close_exception(const char* aPath) :
+		mMessage("The dynamic library '" + std::string(aPath) + "' could not be closed"),
+		path(aPath)
+	{}
+
+	const char* library_close_exception::what() const throw() {
+		return mMessage.c_str();
 	}
 }
