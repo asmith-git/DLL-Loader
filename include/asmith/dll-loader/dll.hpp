@@ -108,7 +108,12 @@ namespace asmith {
 		}
 	};
 
-	class library_load_exception : public std::exception {
+	class dynamic_library_exception : public std::exception {
+	public:
+		virtual ~dynamic_library_exception() throw() {}
+	};
+
+	class library_load_exception : public dynamic_library_exception {
 	private:
 		const std::string mMessage;
 	public:
@@ -118,7 +123,7 @@ namespace asmith {
 		const char* what() const throw() override;
 	};
 
-	class library_close_exception : public std::exception {
+	class library_close_exception : public dynamic_library_exception {
 	private:
 		const std::string mMessage;
 	public:
@@ -128,7 +133,7 @@ namespace asmith {
 		const char* what() const throw() override;
 	};
 
-	class symbol_not_found_exception : public std::exception {
+	class symbol_not_found_exception : public dynamic_library_exception {
 	private:
 		const std::string mMessage;
 	public:
