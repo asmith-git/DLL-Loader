@@ -27,9 +27,6 @@
 #endif
 
 namespace asmith {
-
-	struct dll_data_t {
-	}; //!< \brief Contains OS specific handles for dynamic libraries, for internal use only.
 	
 	static std::map<std::string, std::weak_ptr<dynamic_library>> DLL_MAP;
 	static std::mutex DLL_MAP_LOCK;
