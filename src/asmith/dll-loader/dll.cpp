@@ -17,6 +17,7 @@
 #include <string>
 #include <mutex>
 #include <algorithm>
+#include <string>
 
 #ifdef WIN32
 	#define WIN32_LEAN_AND_MEAN
@@ -26,48 +27,69 @@
 	#include <dlfcn.h>
 #endif
 
-//! \todo Implmented dynamic libraries for UNIX systems
-
 namespace asmith {
 
-	/*!
-		\class dll
-		\author Adam Smith
-		\brief A simple class for loading dynamic link libraries (DLL), and extracting function pointers or variables from them.
-		\detail Currently only implemented for Windows OS
-		Usage Example:
-		\code
-		std::shared_ptr<dll> myDLL = dll::load("example.dll");
-
-		// Loading a function
-		float(*myFunction)(int, int) = mDLL->get_functon<float,int,int>("myFunction");
-
-		// Loading a variable
-		float myVar = mDLL->get_variable<float>("myFunction");
-		\endcode
-		\date Created: 28th April 2017 Modified : 28th April 2017
-	*/
-
 	struct dll_data_t {
-#ifdef WIN32
-		HMODULE handle;
-#else
-		void* handle;
-#endif
 	}; //!< \brief Contains OS specific handles for dynamic libraries, for internal use only.
 	
-	static std::map<std::string, std::weak_ptr<dll>> DLL_MAP;
+	static std::map<std::string, std::weak_ptr<dynamic_library>> DLL_MAP;
 	static std::mutex DLL_MAP_LOCK;
 
-	// dll
+	class os_dynamic_library : public dynamic_library {
+	private:
+#ifdef WIN32
+		typedef HMODULE handle_t;
+#else
+		typedef void* handle_t;
+#endif
+
+		const std::string mPath;
+		handle_t mHandle;
+	public:
+		os_dynamic_library(const char* const aPath) :
+			mPath(aPath)
+		{
+			#ifdef WIN32
+				mHandle = LoadLibraryA(aPath);
+			#else
+				mHandle = dlopen(aPath, RTLD_LAZY);
+			#endif
+		}
+
+		~os_dynamic_library() {
+			#ifdef WIN32
+				FreeLibrary(mHandle);
+			#else
+				dlclose(mHandle);
+			#endif
+		}
+
+		// Inherited from dynamic_library
+
+		const char* get_path() const throw() override {
+			return mPath.c_str();
+		}
+
+		void* load_symbol(const char* aName) {
+			return 
+			#ifdef WIN32
+				GetProcAddress
+			#else
+				dlsym
+			#endif
+				(mHandle, aName);
+		}
+	};
+
+	// dynamic_library
 
 	/*!
 		\brief Load a dynamic link library from file
 		\param aPath The file path of the library
 		\return The libary object, null if the library failed to load.
 	*/
-	std::shared_ptr<dll> dll::load(const char* aPath) throw() {
-		std::shared_ptr<dll> r;
+	std::shared_ptr<dynamic_library> dynamic_library::load_library(const char* aPath) throw() {
+		std::shared_ptr<dynamic_library> r;
 		const std::string path = aPath;
 		
 		// Tread safe access to the cache
@@ -81,70 +103,16 @@ namespace asmith {
 				// If the cached version has been deleted then reload it
 				if(!r) {
 					DLL_MAP.erase(i);
-					r = load(aPath);
+					r = load_library(aPath);
 				}
 			}else {
 				// Load the library from file
-				dll_data_t tmp;
-#ifdef WIN32
-				tmp.handle = LoadLibraryA(aPath);
-#else
-				tmp.handle = dlopen(aPath, RTLD_LAZY);
-#endif
-				if(tmp.handle != NULL) {
-					r = std::shared_ptr<dll>(new dll(path, new dll_data_t(tmp)));
-					// Cache the library
-					DLL_MAP.emplace(path, r);
-				}
+				r = std::shared_ptr<dynamic_library>(new os_dynamic_library(aPath));
+				
+				// Cache the library
+				DLL_MAP.emplace(path, r);
 			}
 		DLL_MAP_LOCK.unlock();
 		return r;
-	}
-
-	/*!
-		\brief Create a new library
-		\param aPath The file path of the library
-		\param aData The OS specific handles for the library
-	*/
-	dll::dll(const std::string& aPath, dll_data_t* aData) :
-		mPath(aPath),
-		mData(aData)
-	{}
-
-	/*!
-		\brief Destroy the library
-	*/
-	dll::~dll() {
-		if(mData) {
-#ifdef WIN32
-			FreeLibrary(mData->handle);
-#else
-			dlclose(mData->handle);
-#endif
-			delete mData;
-		}
-	}
-
-	/*!
-		\brief Get the file path the library was loaded from
-		\return The file path
-	*/
-	const char* dll::get_path() const throw() {
-		return mPath.c_str();
-	}
-
-	/*!
-		\brief Load an untyped function from the library
-		\param The name of the function
-		\return The address of the function, or nullptr if the load failed
-	*/
-	void* dll::get_raw_function(const char* aName) throw() {
-		return mData ?
-#ifdef WIN32
-			GetProcAddress
-#else
-			dlsym
-#endif
-			(mData->handle, aName) : nullptr;
 	}
 }

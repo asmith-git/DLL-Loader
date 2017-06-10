@@ -14,7 +14,6 @@
 #ifndef ASMITH_DLL_DLL_HPP
 #define ASMITH_DLL_DLL_HPP
 
-#include <string>
 #include <memory>
 
 #ifndef ASMITH_DLL_CALLING_CONVENTION
@@ -30,28 +29,55 @@ namespace asmith {
 		\see dll
 	*/
 	template<class R, class... PARAMS>
-	using dll_function = R(ASMITH_DLL_CALLING_CONVENTION *)(PARAMS...);
+	using dynamic_function = R(ASMITH_DLL_CALLING_CONVENTION *)(PARAMS...);
 
 	struct dll_data_t;
 
-	class dll {
+
+	/*!
+		\author Adam Smith
+		\brief A simple class for loading dynamic link libraries (DLL), and extracting function pointers or variables from them.
+		Usage Example:
+		\code
+		std::shared_ptr<dll> myDLL = dynamic_library::load_library("example.dll");
+
+		// Loading a function
+		float(*myFunction)(int, int) = mDLL->load_function<float,int,int>("myFunction");
+
+		// Loading a variable
+		float myVar = mDLL->get_variable<float>("myFunction");
+		\endcode
+		\date Created: 28th April 2017 Modified : 10th June 2017
+		\version 2.0
+	*/
+	class dynamic_library {
 	private:
-		const std::string mPath;	//! The file path of the library
-		dll_data_t* const mData;	//! OS specific handles for the libary
-
-		dll(dll&&) = delete;
-		dll(const dll&) = delete;
-		dll& operator=(dll&&) = delete;
-		dll& operator=(const dll&) = delete;
-
-		dll(const std::string&, dll_data_t*) throw();
+		dynamic_library(dynamic_library&&) = delete;
+		dynamic_library(const dynamic_library&) = delete;
+		dynamic_library& operator=(dynamic_library&&) = delete;
+		dynamic_library& operator=(const dynamic_library&) = delete;
+	protected:
+		dynamic_library() {}
 	public:
-		static std::shared_ptr<dll> load(const char*) throw();
+		static std::shared_ptr<dynamic_library> load_library(const char*) throw();
 
-		~dll() throw();
+		/*!
+			\brief Destroy the library
+		*/
+		virtual ~dynamic_library() {}
 
-		const char* get_path() const throw();
-		void* get_raw_function(const char*) throw();
+		/*!
+			\brief Get the file path the library was loaded from
+			\return The file path
+		*/
+		virtual const char* get_path() const throw() = 0;
+
+		/*!
+			\brief Load an untyped symbol from the library
+			\param The name of the symbol
+			\return The address of the symbol, or nullptr if the load failed
+		*/
+		virtual void* load_symbol(const char*) = 0;
 
 		/*!
 			\tparam R The return type of the function
@@ -63,8 +89,8 @@ namespace asmith {
 			\see dll_function
 		*/
 		template<class R, class... PARAMS>
-		inline dll_function<R, PARAMS...> get_function(const char* aPath) throw() { 
-			return static_cast<dll_function<R, PARAMS...>>(get_raw_function(aPath)); 
+		inline dynamic_function<R, PARAMS...> load_function(const char* aPath) throw() {
+			return static_cast<dynamic_function<R, PARAMS...>>(load_symbol(aPath));
 		}
 
 
@@ -76,13 +102,12 @@ namespace asmith {
 			\see get_raw_function
 		*/
 		template<class T>
-		inline T get_variable(const char* aPath) {
-			T* const tmp = static_cast<T*>(get_raw_function(aPath));
-			if(tmp == nullptr) throw std::runtime_error("asmith::dll_loader::get_variable : Variable was not found with the given name");
+		inline T load_variable(const char* aPath) {
+			T* const tmp = static_cast<T*>(load_symbol(aPath));
+			if(tmp == nullptr) throw std::runtime_error("asmith::dll_loader::load_variable : Variable was not found with the given name");
 			return *tmp;
 		}
 	};
-
 }
 
 #endif
