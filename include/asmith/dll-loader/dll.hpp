@@ -104,8 +104,7 @@ namespace asmith {
 		*/
 		template<class T>
 		inline T load_variable(const char* aPath) {
-			T* const tmp = static_cast<T*>(load_symbol(aPath));
-			return *tmp;
+			return *static_cast<T*>(load_symbol(aPath));
 		}
 	};
 
