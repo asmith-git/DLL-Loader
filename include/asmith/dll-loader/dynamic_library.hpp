@@ -32,8 +32,8 @@ namespace asmith {
 		// Loading a variable
 		float myVar = mDLL->get_variable<float>("myFunction");
 		\endcode
-		\date Created: 28th April 2017 Modified : 10th June 2017
-		\version 2.1
+		\date Created: 28th April 2017 Modified : 12th June 2017
+		\version 2.2
 	*/
 	class dynamic_library : public std::enable_shared_from_this<dynamic_library> {
 	private:
