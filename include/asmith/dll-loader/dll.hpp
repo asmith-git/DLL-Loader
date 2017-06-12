@@ -17,23 +17,7 @@
 #include <memory>
 #include <string>
 
-#ifndef ASMITH_DLL_CALLING_CONVENTION
-	#define ASMITH_DLL_CALLING_CONVENTION
-#endif
-
 namespace asmith {
-
-	/*!
-		\brief Helps define the types of functions returned by dynamic libraries
-		\tparam R The return type of the function
-		\tparam PARAMS The parameter types of the function, empty when there are no parameters
-		\see dll
-	*/
-	template<class R, class... PARAMS>
-	using dynamic_function = R(ASMITH_DLL_CALLING_CONVENTION *)(PARAMS...);
-
-	struct dll_data_t;
-
 
 	/*!
 		\author Adam Smith
@@ -80,37 +64,22 @@ namespace asmith {
 		*/
 		virtual void* load_symbol(const char*) = 0;
 
-		/*!
-			\tparam R The return type of the function
-			\tparam PARAMS The parameter types of the function, empty when there are no parameters
-			\brief Load a function with a known type
-			\param The name of the function
-			\return The address of the function
-			\see get_raw_function
-			\see dll_function
-		*/
-		template<class R, class... PARAMS>
-		inline dynamic_function<R, PARAMS...> load_function(const char* aPath) throw() {
-			return static_cast<dynamic_function<R, PARAMS...>>(load_symbol(aPath));
-		}
-
 
 		/*!
-			\tparam T The type of a variable
-			\brief Load a variable with a known type
-			\param The name of the variable
-			\return The variable
-			\see get_raw_function
+			\brief Load a typed symbol from the library
+			\tparam T The type of the symbol
+			\param The name of the symbol
+			\return The address of the symbol
 		*/
 		template<class T>
-		inline T load_variable(const char* aPath) {
-			return *static_cast<T*>(load_symbol(aPath));
+		inline T* load_symbol(const char* aName) {
+			return static_cast<T*>(load_symbol(aName));
 		}
 	};
 
 	class dynamic_library_exception : public std::exception {
 	public:
-		virtual ~dynamic_library_exception() throw() {}
+		virtual ~dynamic_library_exception() {}
 	};
 
 	class library_load_exception : public dynamic_library_exception {

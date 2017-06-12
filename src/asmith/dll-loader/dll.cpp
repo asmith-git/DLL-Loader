@@ -33,14 +33,12 @@ namespace asmith {
 
 	class os_dynamic_library : public dynamic_library {
 	private:
-#ifdef WIN32
-		typedef HMODULE handle_t;
-#else
-		typedef void* handle_t;
-#endif
-
 		const std::string mPath;
-		handle_t mHandle;
+#ifdef WIN32
+		HMODULE mHandle;
+#else
+		void* mHandle;
+#endif
 	public:
 		os_dynamic_library(const char* const aPath) :
 			mPath(aPath)
