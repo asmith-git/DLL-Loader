@@ -1,13 +1,12 @@
 # DLL-Loader
 ## Description
-A simple class for loading dynamic link libraries (DLL). Currently only implemented for Windows OS.
+A simple class for loading dynamic libraries.
 The stable branch of the code can be found here : https://github.com/asmith-git/DLL-Loader/tree/Stable-1.0
 
 ## Features
-1. Loading DLL from file
-2. Automatic memory management, including prevention of a single library being duplicated multiple times
-3. Loading function pointers with either known or unknown types
-4. Loading variables with known types
+1. Loading a dynamic library (.dll or .so) from file
+2. Automatic memory management, preventing multiple loadings of the same library
+3. Loading symbols with either a known or unknown type
 
 
 ## Code Example
