@@ -93,7 +93,7 @@ namespace asmith {
 		\param aPath The file path of the library
 		\return The libary object, null if the library failed to load.
 	*/
-	std::shared_ptr<dynamic_library> dynamic_library::load_library(const char* aPath) throw() {
+	std::shared_ptr<dynamic_library> dynamic_library::load_library(const char* aPath) {
 		std::shared_ptr<dynamic_library> r;
 		const std::string path = aPath;
 		

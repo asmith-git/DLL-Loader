@@ -44,7 +44,7 @@ namespace asmith {
 	protected:
 		dynamic_library() {}
 	public:
-		static std::shared_ptr<dynamic_library> load_library(const char*) throw();
+		static std::shared_ptr<dynamic_library> load_library(const char*);
 
 		/*!
 			\brief Destroy the library
