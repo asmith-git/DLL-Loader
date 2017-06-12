@@ -15,22 +15,16 @@ The stable branch of the code can be found here : https://github.com/asmith-git/
 using namespace asmith;
 
 // Loading the library
-std::shared_ptr<dll> myDLL = dll::load("example.dll");
+std::shared_ptr<dynamic_library> myLib = dynamic_library::load_library("example.dll");
 
-// Checking the library has loaded
-if(! myDLL) std::cerr << "Help, myDLL failed to load!" << std::endl;
+// Loading a symbol without knowing it's type
+void* unknownSymbol = myLib->load_symbol("myFunction");
 
-// Loading an unknown function
-void* unknownFunction = mDLL->get_raw_function("myFunction");
+// Loading a symbol with a known type
+float(*myFun)(int, int) = myLib->load_symbol<float(*)(int, int)>("myFun");
 
-// Loading a known function
-float(ASMITH_DLL_CALLING_CONVENTION *knownFunction)(int, int) = mDLL->get_functon<float,int,int>("myFunction");
-
-// Alternatively...
-dll_function<float, int, int> knownFunction2 = mDLL->get_functon<float,int,int>("myFunction");
-
-// Loading a variable
-float myVariable = mDLL->get_variable<float>("myVariable");
+// Another example, for loading a variable
+int myVar = *myLib->load_symbol<int>("myVar");
 ```
 
 ## Installation
