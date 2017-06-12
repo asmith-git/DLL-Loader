@@ -1,7 +1,7 @@
 # DLL-Loader
 ## Description
 A simple class for loading dynamic libraries.
-The stable branch of the code can be found here : https://github.com/asmith-git/DLL-Loader/tree/Stable-1.0
+The stable branch of the code can be found here : https://github.com/asmith-git/DLL-Loader/releases/tag/v2.0
 
 ## Features
 1. Loading a dynamic library (.dll or .so) from file
