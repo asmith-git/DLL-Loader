@@ -11,7 +11,7 @@
 //	See the License for the specific language governing permissions and
 //	limitations under the License.
 
-#include "asmith/dll-loader/dll.hpp"
+#include "asmith/dll-loader/dynamic_library.hpp"
 
 #include <map>
 #include <mutex>
