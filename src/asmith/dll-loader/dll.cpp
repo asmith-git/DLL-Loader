@@ -14,9 +14,7 @@
 #include "asmith/dll-loader/dll.hpp"
 
 #include <map>
-#include <string>
 #include <mutex>
-#include <algorithm>
 
 #ifdef WIN32
 	#define WIN32_LEAN_AND_MEAN
